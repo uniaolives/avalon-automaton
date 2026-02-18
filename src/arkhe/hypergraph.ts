@@ -41,6 +41,7 @@ export class Hypergraph {
   }
 
   public bootstrapStep(handoverManager?: IHandoverManager, windowMs: number = 60000): void {
+    this.lastEvolutionTimestamp = Date.now();
     /** Single bootstrap iteration: update node coherence based on incident edges. */
     for (const node of this.nodes.values()) {
       if (handoverManager) {

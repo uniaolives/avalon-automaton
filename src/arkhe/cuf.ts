@@ -53,6 +53,7 @@ export class CUFRefinement {
 
     // Establish handover as refinement
     this.h.addEdge(new Set([sourceNodeId, refinedNode.id]), 0.95);
+    this.h.lastEvolutionTimestamp = Date.now();
 
     return refinedNode;
   }
