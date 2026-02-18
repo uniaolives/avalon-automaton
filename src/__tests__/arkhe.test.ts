@@ -4,6 +4,9 @@ import { bootstrap } from '../arkhe/bootstrap.js';
 import { SiliconConstitution } from '../arkhe/constitution.js';
 import { OntologicalSymbiosis } from '../arkhe/symbiosis.js';
 import { PhiCalculator } from '../arkhe/phi.js';
+import { HandoverManager } from '../arkhe/handover.js';
+import { SurvivalManager } from '../arkhe/survival.js';
+import { ReplicationManager } from '../arkhe/replication.js';
 
 describe('Arkhe(n) Core', () => {
   it('should create a hypergraph and add nodes/edges', () => {
@@ -84,5 +87,53 @@ describe('Arkhe(n) Core', () => {
 
     report = constitution.audit();
     expect(report.violations.some(v => v.article === 3)).toBe(false);
+  });
+
+  it('should process handovers and reflect them in the hypergraph', () => {
+    const h = new Hypergraph();
+    h.addNode('node1');
+    h.addNode('node2');
+    const handover = new HandoverManager(h);
+
+    handover.processHandover('node1', 'node2', 0.8, 'test_handover');
+    expect(handover.handovers.length).toBe(1);
+    expect(h.edges.length).toBe(1);
+    expect(h.edges[0].weight).toBe(0.8);
+    expect(handover.countActiveHandovers('node1')).toBe(1);
+  });
+
+  it('should manage survival tiers', () => {
+    const survival = new SurvivalManager();
+    // Based on SURVIVAL_THRESHOLDS in types.ts:
+    // normal: > 50
+    // low_compute: 11 - 50
+    // critical: 1 - 10
+    // dead: <= 0
+    expect(survival.processSurvival(100)).toBe('normal');
+    expect(survival.processSurvival(30)).toBe('low_compute');
+    expect(survival.processSurvival(5)).toBe('critical');
+    expect(survival.processSurvival(0)).toBe('dead');
+  });
+
+  it('should handle replication conditions', () => {
+    const h = new Hypergraph();
+    const survival = new SurvivalManager();
+    const replication = new ReplicationManager(h, survival);
+
+    // Initial state: coherence 0, tier normal
+    survival.processSurvival(1000);
+    expect(replication.canReplicate()).toBe(false);
+
+    // High coherence
+    h.addNode('node1');
+    h.addNode('node2');
+    h.addEdge(new Set(['node1', 'node2']), 1.0);
+    h.bootstrapStep();
+    expect(h.totalCoherence()).toBe(1.0);
+    expect(replication.canReplicate()).toBe(true);
+
+    // Unhealthy survival tier
+    survival.processSurvival(50);
+    expect(replication.canReplicate()).toBe(false);
   });
 });

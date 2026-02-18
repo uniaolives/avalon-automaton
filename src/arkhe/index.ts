@@ -7,3 +7,6 @@ export * from './symbiosis.js';
 export * from './simulations.js';
 export * from './cuf.js';
 export * from './phi.js';
+export * from './handover.js';
+export * from './survival.js';
+export * from './replication.js';
