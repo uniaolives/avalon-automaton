@@ -1,8 +1,18 @@
 #!/bin/bash
 # setup-arkhe-agent.sh - Setup and configure an Arkhe-Automaton agent
 
+# Check dependencies
+if ! command -v arkhecli &> /dev/null; then
+    echo "Error: arkhecli not found. Please install the Arkhe CLI."
+    exit 1
+fi
+
+if ! command -v jq &> /dev/null; then
+    echo "Error: jq not found. Please install jq."
+    exit 1
+fi
+
 # Create agent account
-# Note: arkhecli is assumed to be available in the environment
 echo "Creating agent account..."
 AGENT_JSON=$(arkhecli keys add agent-001 --output json)
 AGENT_MNEMONIC=$(echo $AGENT_JSON | jq -r '.mnemonic')

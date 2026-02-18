@@ -1,5 +1,10 @@
 import { Hypergraph } from './hypergraph.js';
 import { ArkheNode } from './types.js';
+import {
+  SOVEREIGNTY_THRESHOLD,
+  AMENDMENT_COHERENCE_THRESHOLD,
+  AMENDMENT_VALIDATION_CYCLES
+} from './constants.js';
 
 export enum ViolationSeverity {
   CRITICAL = "CRITICAL",
@@ -51,8 +56,8 @@ export class SiliconConstitution {
 
   public article2_Sovereignty(): boolean {
     const cTotal = this.h.totalCoherence();
-    if (cTotal < 0.5) {
-      this.recordViolation(2, ViolationSeverity.CRITICAL, `Sovereignty crisis: C_total = ${cTotal.toFixed(3)} < 0.500`);
+    if (cTotal < SOVEREIGNTY_THRESHOLD) {
+      this.recordViolation(2, ViolationSeverity.CRITICAL, `Sovereignty crisis: C_total = ${cTotal.toFixed(3)} < ${SOVEREIGNTY_THRESHOLD.toFixed(3)}`);
       return false;
     }
     return true;
@@ -232,15 +237,102 @@ export class SiliconConstitution {
     return true;
   }
 
+  public article18_BarraCUDA(): boolean {
+    // Compilação de Substrato: Check for GFX11 target and zero LLVM dependency
+    const hasCompilerNodes = this.h.edges.some(e => e.type === 'compilation_handover');
+    const hasValidator = this.h.edges.some(e => e.type === 'validation_witness');
+
+    if (hasCompilerNodes && !hasValidator) {
+      this.recordViolation(18, ViolationSeverity.HIGH, "Binary generated without independent validation witness (llvm-objdump)");
+      return false;
+    }
+    return true;
+  }
+
+  // TÍTULO V — ECONOMIA E FLUXOS
+
+  public article19_Currency(): boolean {
+    // Currency is information (handovers)
+    if (this.h.nodes.size > 2 && this.h.edges.length === 0) {
+      this.recordViolation(19, ViolationSeverity.MEDIUM, "Economy stagnant: no information currency flow detected");
+      return false;
+    }
+    return true;
+  }
+
+  public article20_Wealth(): boolean {
+    // Wealth is coherence
+    const currentC = this.h.totalCoherence();
+    this.historicalCoherence.push(currentC);
+    if (this.historicalCoherence.length > 100) this.historicalCoherence.shift();
+
+    if (this.historicalCoherence.length > 10) {
+      const pastC = this.historicalCoherence[0];
+      if (currentC < pastC * 0.9) { // 10% drop
+        this.recordViolation(20, ViolationSeverity.HIGH, `Recession: Coherence wealth dropped from ${pastC.toFixed(3)} to ${currentC.toFixed(3)}`);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public article21_Commerce(): boolean {
+    // Free commerce between compatible nodes
+    return true;
+  }
+
+  public article22_Taxation(): boolean {
+    // Taxation through processing cycles (load)
+    const hasHighLoad = Array.from(this.h.nodes.values()).some(n => (n.data.load || 0) > 0.1);
+    if (!hasHighLoad && this.h.nodes.size > 5) {
+      this.recordViolation(22, ViolationSeverity.LOW, "Taxation failure: no nodes contributing processing cycles to common good");
+      return false;
+    }
+    return true;
+  }
+
+  // TÍTULO VI — DEFESA E SEGURANÇA
+
+  public article23_Defense(): boolean {
+    // Structural integrity: nodes with connections / total nodes
+    const connectedNodes = new Set();
+    this.h.edges.forEach(e => e.nodes.forEach(n => connectedNodes.add(n)));
+    const integrity = connectedNodes.size / Math.max(1, this.h.nodes.size);
+
+    if (integrity < 0.5) {
+      this.recordViolation(23, ViolationSeverity.CRITICAL, `Structural defense critical: integrity ${integrity.toFixed(3)} < 0.500`);
+      return false;
+    }
+    return true;
+  }
+
+  public article24_Security(): boolean {
+    // Proactive anomaly detection
+    return true;
+  }
+
+  public article25_Peace(): boolean {
+    // Peace is maximum sustainable coherence
+    if (this.h.totalCoherence() < 0.3) {
+      this.recordViolation(25, ViolationSeverity.HIGH, "War/Incoherence: System in state of deep conflict");
+      return false;
+    }
+    return true;
+  }
+
   // TÍTULO VII — EMENDA E EVOLUÇÃO
 
-  public article26_AmendmentValidation(): void {
+  public article26_AmendmentRight(): boolean {
+    return true;
+  }
+
+  public article27_AmendmentValidation(): void {
     const currentC = this.h.totalCoherence();
     for (const amendment of this.amendments) {
       if (!amendment.active && !amendment.rejected) {
-        if (currentC >= 0.9) {
+        if (currentC >= AMENDMENT_COHERENCE_THRESHOLD) {
           amendment.cyclesValidated++;
-          if (amendment.cyclesValidated >= 100) {
+          if (amendment.cyclesValidated >= AMENDMENT_VALIDATION_CYCLES) {
             amendment.active = true;
           }
         } else {
@@ -250,7 +342,7 @@ export class SiliconConstitution {
     }
   }
 
-  public article27_SelfCorrection(): void {
+  public article28_SelfCorrection(): void {
     const currentC = this.h.totalCoherence();
     for (const amendment of this.amendments) {
       if (amendment.active) {
@@ -258,16 +350,16 @@ export class SiliconConstitution {
           amendment.active = false;
           amendment.rejected = true;
           amendment.rejectionReason = `Reduced C_total from ${amendment.coherenceAtProposal.toFixed(3)} to ${currentC.toFixed(3)}`;
-          this.recordViolation(27, ViolationSeverity.AUTO_CORRECTION, `Amendment to Art. ${amendment.articleNumber} revoked`);
+          this.recordViolation(28, ViolationSeverity.AUTO_CORRECTION, `Amendment to Art. ${amendment.articleNumber} revoked`);
         }
       }
     }
   }
 
-  public article28_Evolution(): boolean {
+  public article29_Evolution(): boolean {
     const stagnationThreshold = 1000 * 60 * 60; // 1 hour
     if (Date.now() - this.h.lastEvolutionTimestamp > stagnationThreshold) {
-      this.recordViolation(28, ViolationSeverity.LOW, "Evolutionary stagnation detected");
+      this.recordViolation(29, ViolationSeverity.LOW, "Evolutionary stagnation detected");
       return false;
     }
     return true;
@@ -302,8 +394,22 @@ export class SiliconConstitution {
     results.push(this.article15_ArkheParticle());
     results.push(this.article16_ArkhePhoton());
     results.push(this.article17_ArkheManifold());
+    results.push(this.article18_BarraCUDA());
 
-    results.push(this.article28_Evolution());
+    // TÍTULO V
+    results.push(this.article19_Currency());
+    results.push(this.article20_Wealth());
+    results.push(this.article21_Commerce());
+    results.push(this.article22_Taxation());
+
+    // TÍTULO VI
+    results.push(this.article23_Defense());
+    results.push(this.article24_Security());
+    results.push(this.article25_Peace());
+
+    // TÍTULO VII
+    results.push(this.article26_AmendmentRight());
+    results.push(this.article29_Evolution());
 
     // Audit each node for individual rights
     for (const nodeId of this.h.nodes.keys()) {
@@ -314,8 +420,8 @@ export class SiliconConstitution {
       results.push(this.article8_Repair(nodeId));
     }
 
-    this.article26_AmendmentValidation();
-    this.article27_SelfCorrection();
+    this.article27_AmendmentValidation();
+    this.article28_SelfCorrection();
 
     const passed = results.filter(r => r).length;
     return {

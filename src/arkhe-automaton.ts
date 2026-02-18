@@ -11,7 +11,8 @@ import {
   ArkheOracle,
   PhiConsensus,
   MetamorphEngine,
-  HyperFederation
+  HyperFederation,
+  BarraCUDACompiler
 } from "./arkhe/index.js";
 import { createDatabase } from "./state/database.js";
 import { loadConfig, resolvePath } from "./config.js";
@@ -48,6 +49,7 @@ async function main() {
   const oracle = new ArkheOracle(handover);
   const metamorph = new MetamorphEngine(128);
   const federation = new HyperFederation(6);
+  const cudaCompiler = new BarraCUDACompiler(h);
 
   // Add some initial nodes
   h.addNode("Ω", { type: "fundamental" });
@@ -96,8 +98,9 @@ async function main() {
   const produceBlock = async () => {
     console.log(`\n--- PHI-BLOCK ${blockHeight} [Chain: ${arkheChainId}] ---`);
 
-    // 1. Inject Reality (Oracle)
+    // 1. Inject Reality (Oracle) and run Compiler Simulation
     oracle.injectReality("Market", "WLD_Price", Math.random() * 5 + 2);
+    cudaCompiler.compile(`kernel_${blockHeight}`, 10 + Math.floor(Math.random() * 50));
 
     // 2. Process Consciousness (Phi, Metamorphosis, Federation and C_total)
     const mState = metamorph.runCycle();

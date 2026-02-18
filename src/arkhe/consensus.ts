@@ -3,7 +3,7 @@
  * Based on Bloco Ω+∞+144.
  */
 
-export const PHI = (1 + Math.sqrt(5)) / 2; // ~1.61803398875
+import { PHI } from './constants.js';
 
 export interface ConsensusParams {
   targetBlockTimeSeconds: number;

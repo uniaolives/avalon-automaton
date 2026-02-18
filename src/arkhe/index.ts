@@ -16,6 +16,7 @@ export * from './proto/index.js';
 export * from './cms-physics.js';
 export * from './coherence-modulation.js';
 export * from './manifold.js';
+export * from './barracuda.js';
 export * from './metamorphosis.js';
 export * from './physics-dsl.js';
 export * from './phi-spectral.js';

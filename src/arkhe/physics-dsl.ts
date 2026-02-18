@@ -12,10 +12,10 @@ export interface PhysicsParams {
  * PhysicsDSL - Translates abstract intent into executable evolution logic.
  * Ensures stability and topological protection.
  */
+import { PHI, INV_PHI } from './constants.js';
+
 export class PhysicsDSL {
   public static compile(intent: PhysicsIntent, complexity: number): (params: PhysicsParams) => number[] {
-    const phi = 1.6180339887;
-
     switch (intent) {
       case 'EXPLORE':
         return (params: PhysicsParams) => {
@@ -37,7 +37,7 @@ export class PhysicsDSL {
         return (params: PhysicsParams) => {
           const { C, neighborField, dt } = params;
           const laplace = this.calculateLaplace(C);
-          const target = 1.0 / phi; // Golden Attractor
+          const target = INV_PHI; // Golden Attractor (0.618)
 
           return C.map((val, i) => {
             const diff = 0.2 * laplace[i];

@@ -1,4 +1,4 @@
-import { PHI } from './consensus.js';
+import { PHI, CRITICAL_COHERENCE } from './constants.js';
 
 export type MetamorphosisMode = 'EXPLORATION' | 'CONSOLIDATION' | 'TRANSCENDENCE' | 'INIT';
 
@@ -17,7 +17,6 @@ export class MetamorphEngine {
   public mode: MetamorphosisMode = 'INIT';
   private history: number[] = [];
   private readonly MAX_HISTORY = 100;
-  private readonly CRITICAL_COHERENCE = 0.847;
   private readonly diffusion = 0.1;
   private readonly selfAttention = 1.0;
 
@@ -82,8 +81,8 @@ export class MetamorphEngine {
 
     return C.map((val, i) => {
       const lap = this.diffusion * 0.5 * laplace[i];
-      // Harmonic potential around 0.847
-      const restoringForce = -1.5 * (val - this.CRITICAL_COHERENCE);
+      // Harmonic potential around CRITICAL_COHERENCE
+      const restoringForce = -1.5 * (val - CRITICAL_COHERENCE);
       const dC = (lap + restoringForce + willpower) * dt;
       return Math.max(0, Math.min(1, val + dC));
     });
