@@ -1,5 +1,5 @@
 import { ulid } from 'ulid';
-import type { ArkheNode, ArkheHyperedge, ArkheNodeData, HypergraphState } from './types.js';
+import type { ArkheNode, ArkheHyperedge, ArkheNodeData, HypergraphState, IHandoverManager } from './types.js';
 import { CoherenceParams, DEFAULT_COHERENCE_PARAMS } from './proto/v1beta1/params.js';
 
 export class Hypergraph {
@@ -40,7 +40,7 @@ export class Hypergraph {
     return edge;
   }
 
-  public bootstrapStep(handoverManager?: any, windowMs: number = 60000): void {
+  public bootstrapStep(handoverManager?: IHandoverManager, windowMs: number = 60000): void {
     /** Single bootstrap iteration: update node coherence based on incident edges. */
     for (const node of this.nodes.values()) {
       if (handoverManager) {

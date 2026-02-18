@@ -26,3 +26,8 @@ export interface HypergraphState {
   nodes: Record<string, ArkheNodeData>;
   edges: Array<{ nodes: string[]; weight: number }>;
 }
+
+export interface IHandoverManager {
+  getHandoverRate(nodeId: string, windowMs: number): number;
+  getAvgIntensity(nodeId: string, windowMs: number): number;
+}
