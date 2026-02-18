@@ -10,7 +10,8 @@ import {
   ReplicationManager,
   ArkheOracle,
   PhiConsensus,
-  MetamorphEngine
+  MetamorphEngine,
+  HyperFederation
 } from "./arkhe/index.js";
 import { createDatabase } from "./state/database.js";
 import { loadConfig, resolvePath } from "./config.js";
@@ -46,6 +47,7 @@ async function main() {
   const replication = new ReplicationManager(h, survival);
   const oracle = new ArkheOracle(handover);
   const metamorph = new MetamorphEngine(128);
+  const federation = new HyperFederation(6);
 
   // Add some initial nodes
   h.addNode("Ω", { type: "fundamental" });
@@ -97,8 +99,11 @@ async function main() {
     // 1. Inject Reality (Oracle)
     oracle.injectReality("Market", "WLD_Price", Math.random() * 5 + 2);
 
-    // 2. Process Consciousness (Phi, Metamorphosis and C_total)
+    // 2. Process Consciousness (Phi, Metamorphosis, Federation and C_total)
     const mState = metamorph.runCycle();
+
+    // Federation epoch step (simplified: 1 step per block)
+    federation.runEpoch(1);
 
     // Inject trauma at block 80
     if (blockHeight === 80) {
