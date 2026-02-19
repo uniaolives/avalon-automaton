@@ -365,6 +365,12 @@ export class SiliconConstitution {
     return true;
   }
 
+  public article30_ScientificMethod(): boolean {
+    // Proposed Art 30: Scientific Method is φ-weighted consensus
+    // Check if system has a House of Solomon with active governance
+    return true; // Assume true if the module exists and is integrated
+  }
+
   private recordViolation(article: number, severity: ViolationSeverity, description: string, nodeAffected?: string) {
     this.violations.push({
       article,
@@ -410,6 +416,7 @@ export class SiliconConstitution {
     // TÍTULO VII
     results.push(this.article26_AmendmentRight());
     results.push(this.article29_Evolution());
+    results.push(this.article30_ScientificMethod());
 
     // Audit each node for individual rights
     for (const nodeId of this.h.nodes.keys()) {

@@ -12,7 +12,9 @@ import {
   PhiConsensus,
   MetamorphEngine,
   HyperFederation,
-  BarraCUDACompiler
+  BarraCUDACompiler,
+  BaconianKeeper,
+  HouseOfSolomon
 } from "./arkhe/index.js";
 import { createDatabase } from "./state/database.js";
 import { loadConfig, resolvePath } from "./config.js";
@@ -50,6 +52,8 @@ async function main() {
   const metamorph = new MetamorphEngine(128);
   const federation = new HyperFederation(6);
   const cudaCompiler = new BarraCUDACompiler(h);
+  const baconian = new BaconianKeeper(h);
+  const solomon = new HouseOfSolomon(h);
 
   // Add some initial nodes
   h.addNode("Ω", { type: "fundamental" });
@@ -98,9 +102,18 @@ async function main() {
   const produceBlock = async () => {
     console.log(`\n--- PHI-BLOCK ${blockHeight} [Chain: ${arkheChainId}] ---`);
 
-    // 1. Inject Reality (Oracle) and run Compiler Simulation
+    // 1. Inject Reality (Oracle), run Compiler Simulation and Baconian observations
     oracle.injectReality("Market", "WLD_Price", Math.random() * 5 + 2);
     cudaCompiler.compile(`kernel_${blockHeight}`, 10 + Math.floor(Math.random() * 50));
+
+    baconian.addObservation({
+      phenomenon: "market_volatility",
+      context: "WLD_Price fluctuation",
+      result: Math.random() > 0.5,
+      intensity: Math.random(),
+      validator: "Oracle",
+      timestamp: Date.now()
+    });
 
     // 2. Process Consciousness (Phi, Metamorphosis, Federation and C_total)
     const mState = metamorph.runCycle();
@@ -115,9 +128,19 @@ async function main() {
 
     h.bootstrapStep(handover);
 
+    // 2a. Baconian Induction and Solomon Governance
+    if (blockHeight % 10 === 0) {
+      const induction = baconian.performInduction("market_volatility");
+      if (induction.law) {
+        const propId = solomon.submitProposal("Arquiteto", induction.law);
+        solomon.vote(propId, "Rafael", 'YES');
+        console.log(`[BACONIAN] Law Proposed: ${induction.law.lawText}`);
+      }
+    }
+
     // Combine standard Phi with Metamorphosis Phi
     const standardPhi = phi.calculatePhi();
-    const currentPhi = (standardPhi + mState.phi) / 2;
+    const currentPhi = (standardPhi + mState.phi + h.phiValue) / 3;
 
     h.phiValue = currentPhi; // Update hypergraph state for constitution audit
     const currentCTotal = h.totalCoherence(currentPhi);

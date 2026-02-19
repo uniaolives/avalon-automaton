@@ -1,4 +1,5 @@
 import { PHI, CRITICAL_COHERENCE } from './constants.js';
+import { standardDeviation } from './math-utils.js';
 
 export type MetamorphosisMode = 'EXPLORATION' | 'CONSOLIDATION' | 'TRANSCENDENCE' | 'INIT';
 
@@ -59,15 +60,15 @@ export class MetamorphEngine {
    * Exploration Strategy: High entropy, fast diffusion.
    */
   private explorationStrategy(C: number[], dt: number): number[] {
-    const laplace = this.calculateLaplace(C);
-    const noiseGain = 0.05 * this.calculateStandardDeviation(C);
+    const lap = this.calculateLaplace(C);
+    const noiseGain = 0.05 * standardDeviation(C);
 
     return C.map((val, i) => {
-      const lap = this.diffusion * 2.0 * laplace[i];
+      const diff = this.diffusion * 2.0 * lap[i];
       // Cubic non-linearity for symmetry breaking
       const reaction = val * (1 - val) * (val - (1 / PHI));
       const noise = (Math.random() * 2 - 1) * noiseGain;
-      const dC = (lap + reaction) * dt + noise;
+      const dC = (diff + reaction) * dt + noise;
       return Math.max(0, Math.min(1, val + dC));
     });
   }
@@ -76,14 +77,14 @@ export class MetamorphEngine {
    * Consolidation Strategy: Low entropy, Golden Attractor.
    */
   private consolidationStrategy(C: number[], dt: number): number[] {
-    const laplace = this.calculateLaplace(C);
+    const lap = this.calculateLaplace(C);
     const willpower = this.selfAttention * 0.05;
 
     return C.map((val, i) => {
-      const lap = this.diffusion * 0.5 * laplace[i];
+      const diff = this.diffusion * 0.5 * lap[i];
       // Harmonic potential around CRITICAL_COHERENCE
       const restoringForce = -1.5 * (val - CRITICAL_COHERENCE);
-      const dC = (lap + restoringForce + willpower) * dt;
+      const dC = (diff + restoringForce + willpower) * dt;
       return Math.max(0, Math.min(1, val + dC));
     });
   }
@@ -108,14 +109,14 @@ export class MetamorphEngine {
     this.coherence = this.evolveStrategy(this.coherence, dt);
 
     // 2. Spectral Analysis (Approximate Phi)
-    const entropy = this.calculateStandardDeviation(this.coherence);
+    const entropy = standardDeviation(this.coherence);
     this.history.push(entropy);
     if (this.history.length > this.MAX_HISTORY) {
       this.history.shift();
     }
 
     // Phi approximated by entropy stability
-    const historyStd = this.calculateStandardDeviation(this.history);
+    const historyStd = standardDeviation(this.history);
     const phi = this.history.length > 10 ? 1.0 / (1.0 + historyStd) : 0;
 
     // 3. OODA Loop: Decision for Metamorphosis
@@ -147,13 +148,5 @@ export class MetamorphEngine {
       lap[i] = prev + next - 2 * C[i];
     }
     return lap;
-  }
-
-  private calculateStandardDeviation(values: number[]): number {
-    if (values.length === 0) return 0;
-    const avg = values.reduce((a, b) => a + b, 0) / values.length;
-    const squareDiffs = values.map(v => Math.pow(v - avg, 2));
-    const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / values.length;
-    return Math.sqrt(avgSquareDiff);
   }
 }

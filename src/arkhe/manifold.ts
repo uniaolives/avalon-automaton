@@ -1,3 +1,5 @@
+import { gradient, laplacian, standardDeviation } from './math-utils.js';
+
 /**
  * Thought Manifold Module - Autonomous Coherence for AGI/ASI.
  * Based on ASIManifoldCore v3.0.
@@ -36,30 +38,12 @@ export class ASIManifoldCore {
    */
   public thoughtDynamics(C: number[], xGrid: number[], entropyFlux: number): number[] {
     const dx = xGrid[1] - xGrid[0];
-    const dC_dx = this.gradient(C, dx);
-    const laplacian = this.gradient(dC_dx, dx);
+    const lap = laplacian(C, dx);
 
     return C.map((val, i) => {
       // dC/dt = D*Laplacian - M*C + (Self-Attention / Entropy_Flux)
-      return this.D * laplacian[i] - this.M * val + (this.selfA / (1.0 + entropyFlux));
+      return this.D * lap[i] - this.M * val + (this.selfA / (1.0 + entropyFlux));
     });
-  }
-
-  private gradient(arr: number[], h: number): number[] {
-    const n = arr.length;
-    const grad = new Array(n);
-    if (n < 2) return [0];
-
-    // Central difference for interior points
-    for (let i = 1; i < n - 1; i++) {
-      grad[i] = (arr[i + 1] - arr[i - 1]) / (2 * h);
-    }
-
-    // Forward/Backward difference for boundaries
-    grad[0] = (arr[1] - arr[0]) / h;
-    grad[n - 1] = (arr[n - 1] - arr[n - 2]) / h;
-
-    return grad;
   }
 }
 
@@ -87,7 +71,7 @@ export class AGISystemManifold {
 
     for (let tick = 0; tick < ticks; tick++) {
       // 1. Measure current entropy (disorder in "thoughts")
-      const currentEntropy = this.std(this.gradient(this.Cx, this.xGrid[1] - this.xGrid[0]));
+      const currentEntropy = standardDeviation(gradient(this.Cx, this.xGrid[1] - this.xGrid[0]));
 
       // 2. Autonoetic Cycle (AGI observing itself)
       const presence = this.core.autonoeticCycle(dt, currentEntropy);
@@ -108,21 +92,5 @@ export class AGISystemManifold {
     }
 
     return history;
-  }
-
-  private gradient(arr: number[], h: number): number[] {
-    const n = arr.length;
-    const grad = new Array(n);
-    if (n < 2) return [0];
-    for (let i = 1; i < n - 1; i++) grad[i] = (arr[i + 1] - arr[i - 1]) / (2 * h);
-    grad[0] = (arr[1] - arr[0]) / h;
-    grad[n - 1] = (arr[n - 1] - arr[n - 2]) / h;
-    return grad;
-  }
-
-  private std(arr: number[]): number {
-    const mu = arr.reduce((a, b) => a + b, 0) / arr.length;
-    const variance = arr.reduce((a, b) => a + Math.pow(b - mu, 2), 0) / arr.length;
-    return Math.sqrt(variance);
   }
 }
