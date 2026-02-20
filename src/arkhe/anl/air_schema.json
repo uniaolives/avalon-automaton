@@ -1,0 +1,38 @@
+{
+  "air_version": "0.1.0",
+  "hypergraph": {
+    "id": "string",
+    "nodes": [
+      {
+        "id": "string",
+        "state_space": {
+          "dimension": "int",
+          "topology": "euclidean|spherical|hyperbolic|fractal",
+          "algebra": "real|complex|quaternion"
+        },
+        "initial_state": "tensor",
+        "dynamics": "expression",
+        "observables": {"name": "expression"}
+      }
+    ],
+    "handovers": [
+      {
+        "id": "string",
+        "source": "node_id",
+        "target": "node_id",
+        "protocol": "conservative|creative|destructive|transmutative",
+        "map": "expression",
+        "latency": "float",
+        "bandwidth": "float",
+        "fidelity": "float",
+        "entanglement": "float"
+      }
+    ]
+  },
+  "metrics": ["coherence", "integration", "entropy"],
+  "simulation": {
+    "dt": "float",
+    "t_max": "float",
+    "integrator": "euler|rk4|adaptive"
+  }
+}
